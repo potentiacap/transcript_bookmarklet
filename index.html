@@ -15,6 +15,7 @@
     .copy-btn { flex-shrink: 0; padding: 4px 10px; font-size: 0.75em; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; }
     .copy-btn:hover { background: #333; }
     .copy-btn.copied { background: #1a7f37; }
+    .loading { color: #888; font-style: italic; }
   </style>
 </head>
 <body>
@@ -22,20 +23,18 @@
 
   <div class="section">
     <h2>1. Install (drag to bookmarks bar)</h2>
-    <a class="bookmarklet" href="javascript:(function(){var old=document.getElementById('__transcript_script');if(old)old.remove();var local='http://localhost:9985/script.js?_='+Date.now();var remote='https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/script.js?_='+Date.now();function inject(src){var s=document.createElement('script');s.id='__transcript_script';s.src=src;document.head.appendChild(s);}fetch(local,{mode:'no-cors'}).then(function(){inject(local);}).catch(function(){inject(remote);});})()">
-      Teams Transcript
-    </a>
+    <a class="bookmarklet" id="bookmarklet-link" href="#">Teams Transcript</a>
     <p>Or manually create a bookmark and paste the URL below into the address field:</p>
     <div class="copy-wrap">
-      <pre id="bookmarklet-code">javascript:(function(){var old=document.getElementById('__transcript_script');if(old)old.remove();var local='http://localhost:9985/script.js?_='+Date.now();var remote='https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/script.js?_='+Date.now();function inject(src){var s=document.createElement('script');s.id='__transcript_script';s.src=src;document.head.appendChild(s);}fetch(local,{mode:'no-cors'}).then(function(){inject(local);}).catch(function(){inject(remote);});})()</pre>
+      <pre id="bookmarklet-code" class="loading">Loading...</pre>
       <button class="copy-btn" onclick="copyBookmarklet(this)">Copy</button>
     </div>
   </div>
 
   <div class="section">
     <h2>2. Usage</h2>
-    <p>Join a Teams meeting with transcription on, then click the bookmarklet. Check the DevTools console for <code>[Transcript] Observer started</code>.</p>
-    <p>To export the transcript, run in the console:</p>
+    <p>Join a Teams meeting with transcription on, then click the bookmarklet. A dialog will appear to start or resume a capture session.</p>
+    <p>To export from the console at any time:</p>
     <pre>copy(JSON.stringify(window.transcript, null, 2))</pre>
     <p>To stop the observer:</p>
     <pre>window.myObserver.disconnect()</pre>
@@ -43,13 +42,33 @@
 
   <h1>Development Mode</h1>
   <div class="section">
-    <h2>1. Start local server in the checked out repo</h2>
+    <h2>Start local server in the checked out repo</h2>
     <pre>python3 -m http.server 9985</pre>
+    <p>Then open <a href="http://localhost:9985">http://localhost:9985</a> to get a bookmarklet built from your local script.js.</p>
   </div>
 
   <script>
+    async function buildBookmarklet() {
+      try {
+        const res = await fetch('./script.js?_=' + Date.now());
+        const code = await res.text();
+        const minified = code
+          .split('\n')
+          .filter(line => !line.trim().startsWith('//'))
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const bookmarklet = 'javascript:' + minified;
+        document.getElementById('bookmarklet-code').textContent = bookmarklet;
+        document.getElementById('bookmarklet-code').classList.remove('loading');
+        document.getElementById('bookmarklet-link').href = bookmarklet;
+      } catch (e) {
+        document.getElementById('bookmarklet-code').textContent = 'Error loading script.js: ' + e.message;
+      }
+    }
+
     function copyBookmarklet(btn) {
-      var text = document.getElementById('bookmarklet-code').innerText;
+      var text = document.getElementById('bookmarklet-code').textContent;
       navigator.clipboard.writeText(text).then(function() {
         btn.textContent = 'Copied!';
         btn.classList.add('copied');
@@ -59,6 +78,8 @@
         }, 2000);
       });
     }
+
+    buildBookmarklet();
   </script>
 </body>
 </html>
