@@ -10,6 +10,11 @@
     pre { background: #f4f4f4; padding: 12px; overflow-x: auto; font-size: 0.85em; }
     .section { margin: 24px 0; }
     h2 { font-size: 1em; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+    .copy-wrap { display: flex; align-items: center; gap: 8px; }
+    .copy-wrap pre { flex: 1; min-width: 0; margin: 0; }
+    .copy-btn { flex-shrink: 0; padding: 4px 10px; font-size: 0.75em; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; }
+    .copy-btn:hover { background: #333; }
+    .copy-btn.copied { background: #1a7f37; }
   </style>
 </head>
 <body>
@@ -21,17 +26,14 @@
       Teams Transcript
     </a>
     <p>Or manually create a bookmark and paste the URL below into the address field:</p>
-    <pre>javascript:(function(){var old=document.getElementById('__transcript_script');if(old)old.remove();var local='http://localhost:9985/script.js?_='+Date.now();var remote='https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/script.js?_='+Date.now();function inject(src){var s=document.createElement('script');s.id='__transcript_script';s.src=src;document.head.appendChild(s);}fetch(local,{mode:'no-cors'}).then(function(){inject(local);}).catch(function(){inject(remote);});})()</pre>
+    <div class="copy-wrap">
+      <pre id="bookmarklet-code">javascript:(function(){var old=document.getElementById('__transcript_script');if(old)old.remove();var local='http://localhost:9985/script.js?_='+Date.now();var remote='https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/script.js?_='+Date.now();function inject(src){var s=document.createElement('script');s.id='__transcript_script';s.src=src;document.head.appendChild(s);}fetch(local,{mode:'no-cors'}).then(function(){inject(local);}).catch(function(){inject(remote);});})()</pre>
+      <button class="copy-btn" onclick="copyBookmarklet(this)">Copy</button>
+    </div>
   </div>
 
   <div class="section">
-    <h2>2. Start local server</h2>
-    <pre>cd /Users/btsai/git/teams_transcript_bookmarklet
-python3 -m http.server 9985</pre>
-  </div>
-
-  <div class="section">
-    <h2>3. Usage</h2>
+    <h2>2. Usage</h2>
     <p>Join a Teams meeting with transcription on, then click the bookmarklet. Check the DevTools console for <code>[Transcript] Observer started</code>.</p>
     <p>To export the transcript, run in the console:</p>
     <pre>copy(JSON.stringify(window.transcript, null, 2))</pre>
@@ -39,9 +41,24 @@ python3 -m http.server 9985</pre>
     <pre>window.myObserver.disconnect()</pre>
   </div>
 
+  <h1>Development Mode</h1>
   <div class="section">
-    <h2>4. Update GitHub URL</h2>
-    <p>Once the repo is public, replace <code>YOUR_USERNAME/YOUR_REPO</code> in the bookmarklet href above with your actual GitHub username and repo name.</p>
+    <h2>1. Start local server in the checked out repo</h2>
+    <pre>python3 -m http.server 9985</pre>
   </div>
+
+  <script>
+    function copyBookmarklet(btn) {
+      var text = document.getElementById('bookmarklet-code').innerText;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>
