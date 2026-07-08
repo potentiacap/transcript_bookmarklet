@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Teams Transcript",
+  "version": "1.0",
+  "description": "Capture live transcription from Teams meetings",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": [
+    "https://teams.cloud.microsoft/*",
+    "https://*.teams.microsoft.com/*"
+  ],
+  "action": {
+    "default_title": "Teams Transcript"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
