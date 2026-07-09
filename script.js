@@ -320,14 +320,15 @@
   }
 
   function startCapture(name, existingEntries) {
+    if (window.myObserver) { window.myObserver.disconnect(); window.myObserver = null; }
+    if (window.__tsHeartbeat) { clearInterval(window.__tsHeartbeat); window.__tsHeartbeat = null; }
+
     closeDialog();
     window.transcript = existingEntries || [];
     window.currentMeeting = name;
 
     createPanel(name);
     window.transcript.forEach(e => addEntryToPanel(e));
-
-    if (window.myObserver) { window.myObserver.disconnect(); window.myObserver = null; }
 
     let lastKey = null;
     let lastKeyTime = 0;
