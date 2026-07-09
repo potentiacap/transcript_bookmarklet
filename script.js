@@ -251,6 +251,7 @@
               const authorText = author.innerText.trim() || 'Unknown';
               const bodyText   = text.innerText.trim();
               if (!bodyText) return;
+
               const key = authorText + '|||' + bodyText;
               const now = Date.now();
               if (key === lastKey && now - lastKeyTime < 1000) return;
@@ -260,7 +261,7 @@
               saveMeeting(name, window.transcript);
               addEntryToPanel(entry);
               console.log(JSON.stringify(entry));
-            }, 300);
+            }, 500);
           }
         }
       }
