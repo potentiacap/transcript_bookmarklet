@@ -48,22 +48,46 @@
   </div>
 
   <script>
+    const GITHUB_PAGES_URL = 'https://potentiacap.github.io/transcript_bookmarklet/';
+    const RAW_SCRIPT_URL = 'https://raw.githubusercontent.com/potentiacap/transcript_bookmarklet/main/script.js';
+
+    function setBookmarklet(code) {
+      const minified = code
+        .split('\n')
+        .filter(line => !line.trim().startsWith('//'))
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const bookmarklet = 'javascript:' + minified;
+      document.getElementById('bookmarklet-code').textContent = bookmarklet;
+      document.getElementById('bookmarklet-code').classList.remove('loading');
+      document.getElementById('bookmarklet-link').href = bookmarklet;
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('bookmarklet-code');
+      el.textContent = msg;
+      el.style.color = '#c00';
+    }
+
     async function buildBookmarklet() {
+      if (location.protocol === 'file:') {
+        showError('⚠️ Open this page via a server, not as a local file.\n\nOptions:\n• Visit: ' + GITHUB_PAGES_URL + '\n• Or run locally: python3 -m http.server 9985');
+        return;
+      }
       try {
         const res = await fetch('./script.js?_=' + Date.now());
-        const code = await res.text();
-        const minified = code
-          .split('\n')
-          .filter(line => !line.trim().startsWith('//'))
-          .join(' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        const bookmarklet = 'javascript:' + minified;
-        document.getElementById('bookmarklet-code').textContent = bookmarklet;
-        document.getElementById('bookmarklet-code').classList.remove('loading');
-        document.getElementById('bookmarklet-link').href = bookmarklet;
+        if (!res.ok) throw new Error('script.js returned ' + res.status);
+        setBookmarklet(await res.text());
       } catch (e) {
-        document.getElementById('bookmarklet-code').textContent = 'Error loading script.js: ' + e.message;
+        // fall back to raw GitHub URL
+        try {
+          const res = await fetch(RAW_SCRIPT_URL + '?_=' + Date.now());
+          if (!res.ok) throw new Error('GitHub fallback returned ' + res.status);
+          setBookmarklet(await res.text());
+        } catch (e2) {
+          showError('Could not load script.js. Visit ' + GITHUB_PAGES_URL + ' to install.');
+        }
       }
     }
 
