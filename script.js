@@ -246,17 +246,21 @@
           const author = node.querySelector?.('[data-tid="author"]');
           const text   = node.querySelector?.('[data-tid="closed-caption-text"]');
           if (author && text) {
-            const authorText = author.innerText.trim();
-            const bodyText   = text.innerText.trim();
-            const key = authorText + '|||' + bodyText;
-            const now = Date.now();
-            if (key === lastKey && now - lastKeyTime < 1000) continue;
-            lastKey = key; lastKeyTime = now;
-            const entry = { t: timestamp(), author: authorText, text: bodyText };
-            window.transcript.push(entry);
-            saveMeeting(name, window.transcript);
-            addEntryToPanel(entry);
-            console.log(JSON.stringify(entry));
+            const capturedAt = timestamp();
+            setTimeout(() => {
+              const authorText = author.innerText.trim() || 'Unknown';
+              const bodyText   = text.innerText.trim();
+              if (!bodyText) return;
+              const key = authorText + '|||' + bodyText;
+              const now = Date.now();
+              if (key === lastKey && now - lastKeyTime < 1000) return;
+              lastKey = key; lastKeyTime = now;
+              const entry = { t: capturedAt, author: authorText, text: bodyText };
+              window.transcript.push(entry);
+              saveMeeting(name, window.transcript);
+              addEntryToPanel(entry);
+              console.log(JSON.stringify(entry));
+            }, 300);
           }
         }
       }
